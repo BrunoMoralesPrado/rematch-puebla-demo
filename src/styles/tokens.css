@@ -1,0 +1,31 @@
+:root {
+  --rm-bg: #0b0b0d;
+  --rm-surface: #141418;
+  --rm-surface-elevated: #1c1c23;
+  --rm-border: #2a2a35;
+  --rm-border-strong: #3c3c4a;
+  --rm-text: #f7f7f5;
+  --rm-text-muted: #a6a6b6;
+  --rm-red: #e11d2e;
+  --rm-red-hover: #c81625;
+  --rm-yellow: #ffd100;
+  --rm-green: #25d366;
+  --rm-green-text: #4ade80;
+  --rm-danger: #fb7185;
+  --rm-accent: var(--rm-red);
+  --rm-accent-contrast: #ffffff;
+
+  --font-display: 'Barlow Condensed', system-ui, sans-serif;
+  --font-sans: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, monospace;
+}
+
+.theme-hyrox {
+  --rm-accent: var(--rm-yellow);
+  --rm-accent-contrast: #0b0b0d;
+}
+
+.theme-xmas {
+  --rm-accent: #16a34a;
+  --rm-accent-contrast: #ffffff;
+}
