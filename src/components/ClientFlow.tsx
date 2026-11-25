@@ -127,10 +127,9 @@ export function ClientFlow() {
   const nameRef = useRef<HTMLInputElement>(null);
   const phoneRef = useRef<HTMLInputElement>(null);
   const headingRef = useRef<HTMLHeadingElement>(null);
+  const dirty = useRef<Record<FieldKey, boolean>>({ name: false, phone: false });
   const announceTimer = useRef<number | undefined>(undefined);
   const isFirstRender = useRef(true);
-  // Campos que la persona ya editó: igual que :user-invalid, no marcamos error sin interacción real.
-  const dirty = useRef<Record<FieldKey, boolean>>({ name: false, phone: false });
 
   const day = days.find((item) => item.key === dayKey) ?? days[0];
   const slot = day?.slots.find((item) => item.id === slotId) ?? null;
@@ -263,60 +262,67 @@ export function ClientFlow() {
   function renderStepOne() {
     const enabledSlots = day ? day.slots.filter((item) => item.enabled) : [];
     return (
-      <>
-        <div className="rm-days-grid" role="group" aria-label="Día de la clase">
-          {days.map((item) => (
-            <button
-              key={item.key}
-              type="button"
-              className="rm-day-btn"
-              aria-pressed={item.key === dayKey}
-              aria-label={item.fullLabel}
-              onClick={() => setDayKey(item.key)}
-            >
-              <span className="rm-day-short">{item.shortDay}</span>
-              <span className="rm-day-num">{item.dayNumber}</span>
-            </button>
-          ))}
+      <div className="rm-split-grid">
+        <div className="rm-split-aside">
+          <div className="rm-days-grid" role="group" aria-label="Día de la clase">
+            {days.map((item) => (
+              <button
+                key={item.key}
+                type="button"
+                className="rm-day-btn"
+                aria-pressed={item.key === dayKey}
+                aria-label={item.fullLabel}
+                onClick={() => setDayKey(item.key)}
+              >
+                <span className="rm-day-short">{item.shortDay}</span>
+                <span className="rm-day-num">{item.dayNumber}</span>
+              </button>
+            ))}
+          </div>
+
+          {day && (
+            <div className="rm-focus-card">
+              <div className="rm-focus-row">
+                <span className="rm-focus-name">{day.focus}</span>
+                <span className="rm-focus-coach">{day.coach}</span>
+              </div>
+              <p className="rm-focus-loc">{REMATCH_BUSINESS.zone}</p>
+            </div>
+          )}
         </div>
 
-        {day && (
-          <div className="rm-focus-row">
-            <span className="rm-focus-name">{day.focus}</span>
-            <span className="rm-focus-coach">{day.coach}</span>
-          </div>
-        )}
-
-        {enabledSlots.length === 0 ? (
-          <p className="rm-hint">Este día no hay horarios abiertos. Prueba con otro día.</p>
-        ) : (
-          <ul className="rm-slots-list" role="list" aria-label={`Horarios del ${day?.fullLabel ?? ''}`}>
-            {enabledSlots.map((item) => {
-              const free = day ? store.freeSpotsFor(day.key, item) : 0;
-              const spots = spotsLabel(free);
-              return (
-                <li key={item.id}>
-                  <button
-                    type="button"
-                    className="rm-slot-btn"
-                    disabled={free <= 0}
-                    onClick={() => chooseSlot(item.id)}
-                  >
-                    <span className="rm-slot-left">
-                      <span className="rm-slot-hour">{item.time}</span>
-                      {item.tag && <span className="rm-slot-tag">{item.tag}</span>}
-                    </span>
-                    <span className="rm-slot-right">
-                      <span className={spots.className}>{spots.text}</span>
-                      {free > 0 && <ChevronIcon />}
-                    </span>
-                  </button>
-                </li>
-              );
-            })}
-          </ul>
-        )}
-      </>
+        <div className="rm-split-main">
+          {enabledSlots.length === 0 ? (
+            <p className="rm-hint">Este día no hay horarios abiertos. Prueba con otro día.</p>
+          ) : (
+            <ul className="rm-slots-list rm-slots-grid" role="list" aria-label={`Horarios del ${day?.fullLabel ?? ''}`}>
+              {enabledSlots.map((item) => {
+                const free = day ? store.freeSpotsFor(day.key, item) : 0;
+                const spots = spotsLabel(free);
+                return (
+                  <li key={item.id}>
+                    <button
+                      type="button"
+                      className="rm-slot-btn"
+                      disabled={free <= 0}
+                      onClick={() => chooseSlot(item.id)}
+                    >
+                      <span className="rm-slot-left">
+                        <span className="rm-slot-hour">{item.time}</span>
+                        {item.tag && <span className="rm-slot-tag">{item.tag}</span>}
+                      </span>
+                      <span className="rm-slot-right">
+                        <span className={spots.className}>{spots.text}</span>
+                        {free > 0 && <ChevronIcon />}
+                      </span>
+                    </button>
+                  </li>
+                );
+              })}
+            </ul>
+          )}
+        </div>
+      </div>
     );
   }
 
@@ -330,117 +336,130 @@ export function ClientFlow() {
       );
     }
     return (
-      <>
-        <div className="rm-chosen-banner">
-          <div>
-            <p className="rm-chosen-k">{day.fullLabel} · {day.focus}</p>
-            <p className="rm-chosen-v">
-              {slot.time}
-              {slot.tag ? ` ${slot.tag}` : ''}
+      <div className="rm-split-grid">
+        <div className="rm-split-aside">
+          <div className="rm-chosen-banner">
+            <div>
+              <p className="rm-chosen-k">{day.fullLabel} · {day.focus}</p>
+              <p className="rm-chosen-v">
+                {slot.time}
+                {slot.tag ? ` ${slot.tag}` : ''}
+              </p>
+            </div>
+            <button type="button" className="rm-link-btn" onClick={goBackToSlots}>
+              Cambiar hora
+            </button>
+          </div>
+
+          <div className="rm-aside-note">
+            <p className="rm-aside-note-title">Reserva sin contraseña</p>
+            <p className="rm-hint">
+              Solo necesitamos tu nombre y WhatsApp para apartar tu lugar y mandarte el recordatorio 2 h antes.
             </p>
           </div>
-          <button type="button" className="rm-link-btn" onClick={goBackToSlots}>
-            Cambiar hora
-          </button>
         </div>
 
-        <form className="rm-form" noValidate onSubmit={handleSubmit}>
-          <div className="rm-field">
-            <label className="rm-label" htmlFor="client-name">1. Tu nombre</label>
-            <span id="client-name-hint" className="rm-hint">Como quieres que te llame el coach</span>
-            <input
-              ref={nameRef}
-              id="client-name"
-              className={fieldClass('name')}
-              type="text"
-              required
-              minLength={2}
-              autoComplete="name"
-              value={name}
-              onChange={(event) => handleFieldChange('name', event)}
-              onBlur={() => handleBlur('name')}
-              aria-invalid={touched.name && invalid.name ? 'true' : 'false'}
-              aria-describedby={describedBy('name')}
-            />
-            <p id="client-name-error" className="rm-error-msg">
-              <AlertIcon />
-              {ERROR_TEXT.name}
-            </p>
-          </div>
+        <div className="rm-split-main">
+          <form className="rm-form" noValidate onSubmit={handleSubmit}>
+            <div className="rm-fields-row">
+              <div className="rm-field">
+                <label className="rm-label" htmlFor="client-name">1. Tu nombre</label>
+                <span id="client-name-hint" className="rm-hint">Como quieres que te llame el coach</span>
+                <input
+                  ref={nameRef}
+                  id="client-name"
+                  className={fieldClass('name')}
+                  type="text"
+                  required
+                  minLength={2}
+                  autoComplete="name"
+                  value={name}
+                  onChange={(event) => handleFieldChange('name', event)}
+                  onBlur={() => handleBlur('name')}
+                  aria-invalid={touched.name && invalid.name ? 'true' : 'false'}
+                  aria-describedby={describedBy('name')}
+                />
+                <p id="client-name-error" className="rm-error-msg">
+                  <AlertIcon />
+                  {ERROR_TEXT.name}
+                </p>
+              </div>
 
-          <div className="rm-field">
-            <label className="rm-label" htmlFor="client-phone">2. Tu WhatsApp</label>
-            <span id="client-phone-hint" className="rm-hint">10 dígitos para mandarte el recordatorio</span>
-            <input
-              ref={phoneRef}
-              id="client-phone"
-              className={fieldClass('phone')}
-              type="tel"
-              required
-              pattern="[\d\s+\-\(\)]{10,16}"
-              inputMode="tel"
-              autoComplete="tel"
-              value={phone}
-              onChange={(event) => handleFieldChange('phone', event)}
-              onBlur={() => handleBlur('phone')}
-              aria-invalid={touched.phone && invalid.phone ? 'true' : 'false'}
-              aria-describedby={describedBy('phone')}
-            />
-            <p id="client-phone-error" className="rm-error-msg">
-              <AlertIcon />
-              {ERROR_TEXT.phone}
-            </p>
-          </div>
-
-          <div className="rm-field" role="group" aria-labelledby="client-pass-label">
-            <span id="client-pass-label" className="rm-label">3. ¿Cómo entras?</span>
-            <div className="rm-passes-grid">
-              {ACCESS_OPTIONS.map((option) => (
-                <button
-                  key={option}
-                  type="button"
-                  className="rm-pass-btn"
-                  aria-pressed={accessType === option}
-                  onClick={() => setAccessType(option)}
-                >
-                  {option}
-                </button>
-              ))}
+              <div className="rm-field">
+                <label className="rm-label" htmlFor="client-phone">2. Tu WhatsApp</label>
+                <span id="client-phone-hint" className="rm-hint">10 dígitos para mandarte el recordatorio</span>
+                <input
+                  ref={phoneRef}
+                  id="client-phone"
+                  className={fieldClass('phone')}
+                  type="tel"
+                  required
+                  pattern="[\d\s+\-\(\)]{10,16}"
+                  inputMode="tel"
+                  autoComplete="tel"
+                  value={phone}
+                  onChange={(event) => handleFieldChange('phone', event)}
+                  onBlur={() => handleBlur('phone')}
+                  aria-invalid={touched.phone && invalid.phone ? 'true' : 'false'}
+                  aria-describedby={describedBy('phone')}
+                />
+                <p id="client-phone-error" className="rm-error-msg">
+                  <AlertIcon />
+                  {ERROR_TEXT.phone}
+                </p>
+              </div>
             </div>
-          </div>
 
-          <details className="rm-details dashed">
-            <summary>+ ¿Algún aviso para el coach? (opcional)</summary>
-            <div className="rm-details-body">
-              <div className="rm-chips-row" role="group" aria-label="Avisos rápidos">
-                {COACH_NOTE_TAGS.map((tag) => (
+            <div className="rm-field" role="group" aria-labelledby="client-pass-label">
+              <span id="client-pass-label" className="rm-label">3. ¿Cómo entras?</span>
+              <div className="rm-passes-grid">
+                {ACCESS_OPTIONS.map((option) => (
                   <button
-                    key={tag}
+                    key={option}
                     type="button"
-                    className="rm-chip-btn"
-                    aria-pressed={noteTag === tag}
-                    onClick={() => setNoteTag((prev) => (prev === tag ? null : tag))}
+                    className="rm-pass-btn"
+                    aria-pressed={accessType === option}
+                    onClick={() => setAccessType(option)}
                   >
-                    {tag}
+                    {option}
                   </button>
                 ))}
               </div>
-              <input
-                type="text"
-                className="rm-input"
-                placeholder="Ej. molestia en rodilla o primera clase"
-                aria-label="Aviso para el coach"
-                value={noteText}
-                onChange={(event) => setNoteText(event.target.value)}
-              />
             </div>
-          </details>
 
-          <button type="submit" className="rm-primary-btn">
-            Apartar mi lugar
-          </button>
-        </form>
-      </>
+            <details className="rm-details dashed">
+              <summary>+ ¿Algún aviso para el coach? (opcional)</summary>
+              <div className="rm-details-body">
+                <div className="rm-chips-row" role="group" aria-label="Avisos rápidos">
+                  {COACH_NOTE_TAGS.map((tag) => (
+                    <button
+                      key={tag}
+                      type="button"
+                      className="rm-chip-btn"
+                      aria-pressed={noteTag === tag}
+                      onClick={() => setNoteTag((prev) => (prev === tag ? null : tag))}
+                    >
+                      {tag}
+                    </button>
+                  ))}
+                </div>
+                <input
+                  type="text"
+                  className="rm-input"
+                  placeholder="Ej. molestia en rodilla o primera clase"
+                  aria-label="Aviso para el coach"
+                  value={noteText}
+                  onChange={(event) => setNoteText(event.target.value)}
+                />
+              </div>
+            </details>
+
+            <button type="submit" className="rm-primary-btn">
+              Apartar mi lugar
+            </button>
+          </form>
+        </div>
+      </div>
     );
   }
 
@@ -498,59 +517,63 @@ export function ClientFlow() {
     }
 
     return (
-      <>
-        <div className="rm-confirm-card">
-          <span className={isCancelled ? 'rm-confirm-status cancelled' : 'rm-confirm-status'}>
-            {isCancelled ? <XCircleIcon /> : <CheckCircleIcon />}
-            {isCancelled ? 'Lugar liberado' : 'Lugar apartado'}
-          </span>
-          <p className="rm-confirm-name">Listo, {booking.name}</p>
-          <p className="rm-step-counter">Folio {booking.folio}</p>
-          <p className="rm-confirm-meta">
-            {dayLabel} · {time} · {booking.accessType}
-          </p>
-          <a className="rm-address-link" href={REMATCH_BUSINESS.mapsUrl} target="_blank" rel="noopener noreferrer">
-            <PinIcon /> {REMATCH_BUSINESS.address}
-          </a>
+      <div className="rm-two-col">
+        <div className="rm-col-stack">
+          <div className="rm-confirm-card">
+            <span className={isCancelled ? 'rm-confirm-status cancelled' : 'rm-confirm-status'}>
+              {isCancelled ? <XCircleIcon /> : <CheckCircleIcon />}
+              {isCancelled ? 'Lugar liberado' : 'Lugar apartado'}
+            </span>
+            <p className="rm-confirm-name">Listo, {booking.name}</p>
+            <p className="rm-step-counter">Folio {booking.folio}</p>
+            <p className="rm-confirm-meta">
+              {dayLabel} · {time} · {booking.accessType}
+            </p>
+            <a className="rm-address-link" href={REMATCH_BUSINESS.mapsUrl} target="_blank" rel="noopener noreferrer">
+              <PinIcon /> {REMATCH_BUSINESS.address}
+            </a>
+          </div>
+
+          <button type="button" className="rm-secondary-btn" onClick={startAnother}>
+            Reservar otra clase
+          </button>
         </div>
 
-        <section className="rm-wa-sim" aria-labelledby="wa-sim-title">
-          <div className="rm-wa-sim-head">
-            <span id="wa-sim-title">WHATSAPP AUTOMÁTICO · 2 H ANTES</span>
-          </div>
-          <p className="rm-wa-bubble">{reminderText}</p>
-          <div className="rm-wa-actions">
-            <button type="button" className="rm-wa-btn yes" onClick={confirmAttendance}>
-              Sí, asistiré
-            </button>
-            <button type="button" className="rm-wa-btn no" onClick={cancelSpot}>
-              Cancelar lugar
-            </button>
-          </div>
-          <div role="status">
-            {waFeedback === 'confirmed' && (
-              <p className="rm-wa-feedback">Gracias, el coach ya te ve como confirmado.</p>
-            )}
-            {waFeedback === 'cancelled' && (
-              <p className="rm-wa-feedback cancelled">
-                Tu lugar se liberó y ya aparece como disponible en la lista del Coach. Gracias por avisar.
-              </p>
-            )}
-            {waFeedback === 'full' && (
-              <p className="rm-wa-feedback cancelled">Ese horario ya se llenó. Puedes reservar otra hora.</p>
-            )}
-          </div>
-        </section>
+        <div className="rm-col-stack">
+          <section className="rm-wa-sim" aria-labelledby="wa-sim-title">
+            <div className="rm-wa-sim-head">
+              <span id="wa-sim-title">WHATSAPP AUTOMÁTICO · 2 H ANTES</span>
+            </div>
+            <p className="rm-wa-bubble">{reminderText}</p>
+            <div className="rm-wa-actions">
+              <button type="button" className="rm-wa-btn yes" onClick={confirmAttendance}>
+                Sí, asistiré
+              </button>
+              <button type="button" className="rm-wa-btn no" onClick={cancelSpot}>
+                Cancelar lugar
+              </button>
+            </div>
+            <div role="status">
+              {waFeedback === 'confirmed' && (
+                <p className="rm-wa-feedback">Gracias, el coach ya te ve como confirmado.</p>
+              )}
+              {waFeedback === 'cancelled' && (
+                <p className="rm-wa-feedback cancelled">
+                  Tu lugar se liberó y ya aparece como disponible en la lista del Coach. Gracias por avisar.
+                </p>
+              )}
+              {waFeedback === 'full' && (
+                <p className="rm-wa-feedback cancelled">Ese horario ya se llenó. Puedes reservar otra hora.</p>
+              )}
+            </div>
+          </section>
 
-        <a className="rm-primary-btn wa" href={waUrl} target="_blank" rel="noopener noreferrer">
-          <ChatIcon />
-          Abrir en WhatsApp
-        </a>
-
-        <button type="button" className="rm-secondary-btn" onClick={startAnother}>
-          Reservar otra clase
-        </button>
-      </>
+          <a className="rm-primary-btn wa" href={waUrl} target="_blank" rel="noopener noreferrer">
+            <ChatIcon />
+            Abrir en WhatsApp
+          </a>
+        </div>
+      </div>
     );
   }
 

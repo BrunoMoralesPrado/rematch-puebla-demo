@@ -60,47 +60,52 @@ export default function App() {
 
   return (
     <div className={shellClass}>
-      <nav className="rm-mode-switcher" aria-label="Cambiar de vista">
-        <button
-          type="button"
-          className="rm-mode-btn"
-          aria-pressed={mode === 'client'}
-          onClick={() => setMode('client')}
-        >
-          <UserIcon />
-          Vista Cliente
-        </button>
-        <button
-          type="button"
-          className="rm-mode-btn owner-active"
-          aria-pressed={mode === 'owner'}
-          onClick={() => setMode('owner')}
-        >
-          <ClipboardIcon />
-          Vista Dueño
-        </button>
-      </nav>
-
       <div className="rm-card-frame">
-        <header className="rm-header">
-          <div>
+        <header className="rm-topbar">
+          <div className="rm-topbar-brand">
             <BrandLogo theme={store.theme} customLogoUrl={store.customLogo} />
-            <p className="rm-header-sub">{REMATCH_BUSINESS.zone}</p>
+            <p className="rm-header-sub">
+              {REMATCH_BUSINESS.zone} · {REMATCH_BUSINESS.clubTag}
+            </p>
           </div>
-          {mode === 'client' ? (
-            <a className="rm-wa-pill" href={WA_QUESTION_URL} target="_blank" rel="noopener noreferrer">
-              <ChatIcon />
-              ¿Dudas?
-            </a>
-          ) : (
-            <span className="rm-owner-badge">
-              <KeyIcon />
-              Modo Dueño
-            </span>
-          )}
+
+          <nav className="rm-mode-switcher" aria-label="Cambiar de vista">
+            <button
+              type="button"
+              className="rm-mode-btn"
+              aria-pressed={mode === 'client'}
+              onClick={() => setMode('client')}
+            >
+              <UserIcon />
+              Vista Cliente
+            </button>
+            <button
+              type="button"
+              className="rm-mode-btn owner-active"
+              aria-pressed={mode === 'owner'}
+              onClick={() => setMode('owner')}
+            >
+              <ClipboardIcon />
+              Vista Dueño
+            </button>
+          </nav>
+
+          <div className="rm-topbar-action">
+            {mode === 'client' ? (
+              <a className="rm-wa-pill" href={WA_QUESTION_URL} target="_blank" rel="noopener noreferrer">
+                <ChatIcon />
+                ¿Dudas?
+              </a>
+            ) : (
+              <span className="rm-owner-badge">
+                <KeyIcon />
+                Modo Dueño
+              </span>
+            )}
+          </div>
         </header>
 
-        <main>
+        <main className="rm-stage-main">
           {/* Ambas vistas quedan montadas para no perder el avance al cambiar de vista. */}
           <div hidden={mode !== 'client'}>
             <ClientFlow />

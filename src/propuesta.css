@@ -24,13 +24,13 @@ body {
   background: var(--bg);
   color: var(--text);
   line-height: 1.5;
-  padding: 20px 14px 48px;
+  padding: clamp(14px, 3dvw, 36px) clamp(12px, 3dvw, 24px) clamp(32px, 5dvh, 56px);
   -webkit-font-smoothing: antialiased;
 }
 
 .doc-shell {
-  max-width: 1040px;
-  margin: 0 auto;
+  max-inline-size: 1120px;
+  margin-inline: auto;
   display: flex;
   flex-direction: column;
   gap: 24px;
@@ -41,7 +41,7 @@ body {
   background: var(--dark);
   color: #f7f7f5;
   border-radius: 20px;
-  padding: 26px 28px;
+  padding: clamp(20px, 3dvw, 30px);
   border: 1px solid #262630;
   display: flex;
   flex-direction: column;
@@ -117,7 +117,7 @@ body {
 
 .btn-primary,
 .btn-outline {
-  min-height: 44px;
+  min-block-size: 44px;
   padding: 0 16px;
   border-radius: 11px;
   font-family: inherit;
@@ -154,7 +154,7 @@ body {
   position: relative;
   z-index: 1;
   font-family: 'Barlow Condensed', sans-serif;
-  font-size: clamp(28px, 4vw, 38px);
+  font-size: clamp(1.75rem, 1.3rem + 1.6dvw, 2.5rem);
   font-weight: 800;
   line-height: 1.05;
 }
@@ -163,8 +163,8 @@ body {
   position: relative;
   z-index: 1;
   color: #c8c8d6;
-  font-size: 14.5px;
-  max-width: 740px;
+  font-size: clamp(0.9rem, 0.85rem + 0.25dvw, 1rem);
+  max-inline-size: 740px;
 }
 
 /* Sections */
@@ -193,7 +193,7 @@ body {
 
 .sec-head h2 {
   font-family: 'Barlow Condensed', sans-serif;
-  font-size: 28px;
+  font-size: clamp(1.5rem, 1.25rem + 1dvw, 2rem);
   font-weight: 800;
   line-height: 1.08;
 }
@@ -201,7 +201,7 @@ body {
 .sec-link {
   display: inline-flex;
   align-items: center;
-  min-height: 44px;
+  min-block-size: 44px;
   color: var(--red);
   font-size: 14px;
   font-weight: 700;
@@ -209,14 +209,15 @@ body {
   text-underline-offset: 3px;
 }
 
-/* 4 Screens Gallery */
+/* 4 Screens Gallery (1 col mobile -> 2 col tablet -> 4 col PC with subgrid) */
 .screens-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(225px, 100%), 1fr));
+  grid-template-columns: minmax(0, 1fr);
   gap: 14px;
 }
 
 .mini-screen-card {
+  min-inline-size: 0;
   background: var(--card);
   border: 1px solid var(--border);
   border-radius: 16px;
@@ -226,8 +227,30 @@ body {
   gap: 10px;
 }
 
+@media (min-width: 600px) {
+  .screens-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .mini-screen-card {
+    grid-row: span 4;
+    display: grid;
+    /* Same-cascade fallback before subgrid */
+    grid-template-rows: auto auto 1fr auto;
+    grid-template-rows: subgrid;
+    gap: 10px;
+  }
+}
+
+@media (min-width: 1000px) {
+  .screens-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
 .mini-badge {
-  align-self: flex-start;
+  align-self: start;
+  justify-self: start;
   font-family: 'JetBrains Mono', monospace;
   font-size: 10.5px;
   font-weight: 600;
@@ -250,7 +273,6 @@ body {
 .mini-screen-card p {
   font-size: 12.5px;
   color: var(--muted);
-  margin-top: auto;
 }
 
 .mini-mockup {
@@ -260,6 +282,7 @@ body {
   padding: 10px;
   display: flex;
   flex-direction: column;
+  justify-content: center;
   gap: 6px;
   font-size: 11px;
 }
@@ -293,6 +316,7 @@ body {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  gap: 6px;
 }
 
 .mm-row.active {
@@ -382,18 +406,27 @@ body {
   border-radius: 0 5px 5px 0;
 }
 
-/* 2 Plans */
-.plans-grid {
+/* 2 Plans & Terms (1 col mobile -> 2 symmetric cols >= 740px) */
+.plans-grid,
+.terms-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(300px, 100%), 1fr));
+  grid-template-columns: minmax(0, 1fr);
   gap: 16px;
 }
 
+@media (min-width: 740px) {
+  .plans-grid,
+  .terms-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
 .plan-card {
+  min-inline-size: 0;
   background: var(--card);
   border: 1px solid var(--border);
   border-radius: 18px;
-  padding: 22px;
+  padding: clamp(18px, 2.5dvw, 24px);
   display: flex;
   flex-direction: column;
   gap: 11px;
@@ -423,7 +456,7 @@ body {
 
 .plan-card h3 {
   font-family: 'Barlow Condensed', sans-serif;
-  font-size: 28px;
+  font-size: clamp(1.5rem, 1.3rem + 0.6dvw, 1.85rem);
   font-weight: 800;
   line-height: 1.05;
 }
@@ -432,6 +465,7 @@ body {
   display: flex;
   align-items: baseline;
   gap: 10px;
+  flex-wrap: wrap;
 }
 
 .plan-old {
@@ -444,7 +478,7 @@ body {
 
 .plan-now {
   font-family: 'Barlow Condensed', sans-serif;
-  font-size: 42px;
+  font-size: clamp(2.1rem, 1.8rem + 1dvw, 2.75rem);
   font-weight: 800;
   line-height: 1;
 }
@@ -495,14 +529,8 @@ body {
   margin-top: 3px;
 }
 
-/* Terms */
-.terms-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(290px, 100%), 1fr));
-  gap: 14px;
-}
-
 .term-card {
+  min-inline-size: 0;
   background: var(--card);
   border: 1px solid var(--border);
   border-radius: 16px;
@@ -536,12 +564,6 @@ body {
 }
 
 @media (max-width: 480px) {
-  .doc-hero {
-    padding: 22px 18px;
-  }
-  .plan-card {
-    padding: 18px;
-  }
   .doc-actions > a,
   .doc-actions > button {
     flex: 1 1 100%;

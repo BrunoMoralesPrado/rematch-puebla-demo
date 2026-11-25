@@ -48,7 +48,6 @@ const THEMES: Array<{ id: BrandTheme; title: string; desc: string; dot: string }
   { id: 'hyrox', title: 'HYROX Race', desc: 'Amarillo de competencia', dot: '#FFD100' }
 ];
 
-// En minúsculas para que React lo pase tal cual como atributo HTML nativo.
 const CLOSED_BY_ANY = { closedby: 'any' } as Record<string, unknown>;
 const SWITCH_ATTR = { switch: '' } as Record<string, unknown>;
 
@@ -313,92 +312,96 @@ export function OwnerPanel() {
   /* ---------- Render por pestaña ---------- */
   function renderReservas() {
     return (
-      <>
-        <div className="rm-owner-filter">
-          <label className="visually-hidden" htmlFor="owner-day">Día</label>
-          <select id="owner-day" className="rm-select" value={listDay?.key ?? ''} onChange={handleListDayChange}>
-            {days.map((day) => (
-              <option key={day.key} value={day.key}>
-                {`${day.fullLabel} · ${day.focus}`}
-              </option>
-            ))}
-          </select>
-          <label className="visually-hidden" htmlFor="owner-slot">Clase</label>
-          <select
-            id="owner-slot"
-            className="rm-select"
-            value={listSlot?.id ?? ''}
-            onChange={(event) => setListSlotId(event.target.value)}
-          >
-            {listDay?.slots.map((slot) => (
-              <option key={slot.id} value={slot.id}>
-                {`${slot.time}${slot.tag ? ` ${slot.tag}` : ''} · ${store.occupiedFor(listDay.key, slot.id)} de ${slot.capacity}${slot.enabled ? '' : ' (apagado)'}`}
-              </option>
-            ))}
-          </select>
+      <div className="rm-split-grid">
+        <div className="rm-split-aside">
+          <div className="rm-owner-filter">
+            <label className="visually-hidden" htmlFor="owner-day">Día</label>
+            <select id="owner-day" className="rm-select" value={listDay?.key ?? ''} onChange={handleListDayChange}>
+              {days.map((day) => (
+                <option key={day.key} value={day.key}>
+                  {`${day.fullLabel} · ${day.focus}`}
+                </option>
+              ))}
+            </select>
+            <label className="visually-hidden" htmlFor="owner-slot">Clase</label>
+            <select
+              id="owner-slot"
+              className="rm-select"
+              value={listSlot?.id ?? ''}
+              onChange={(event) => setListSlotId(event.target.value)}
+            >
+              {listDay?.slots.map((slot) => (
+                <option key={slot.id} value={slot.id}>
+                  {`${slot.time}${slot.tag ? ` ${slot.tag}` : ''} · ${store.occupiedFor(listDay.key, slot.id)} de ${slot.capacity}${slot.enabled ? '' : ' (apagado)'}`}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {listSlot && (
+            <div className="rm-summary-bar">
+              <span className="rm-summary-title">
+                {listSlot.time} {listSlot.tag ?? ''} · {listOccupied} de {listSlot.capacity}
+              </span>
+              <button type="button" className="rm-compact-btn" onClick={openAddBooking}>
+                + Anotar
+              </button>
+            </div>
+          )}
+
+          <p className="rm-hint">Toca un nombre para ver detalles</p>
         </div>
 
-        {listSlot && (
-          <div className="rm-summary-bar">
-            <span className="rm-summary-title">
-              {listSlot.time} {listSlot.tag ?? ''} · {listOccupied} de {listSlot.capacity}
-            </span>
-            <button type="button" className="rm-compact-btn" onClick={openAddBooking}>
-              + Anotar
-            </button>
-          </div>
-        )}
-
-        <p className="rm-hint">Toca un nombre para ver detalles</p>
-
-        {slotBookings.length === 0 ? (
-          <p className="rm-hint">Todavía no hay alumnos en esta clase.</p>
-        ) : (
-          <ul className="rm-slots-list" role="list">
-            {slotBookings.map((booking) => {
-              const note = bookingNote(booking);
-              const firstName = booking.name.split(' ')[0];
-              const greeting =
-                `Hola ${firstName}, te escribe el coach de REMATCH. ` +
-                `Te esperamos el ${listDay?.fullLabel ?? ''} a las ${listSlot?.time ?? ''}.` +
-                (note ? ` Vi tu aviso (${note}) y lo tomamos en cuenta.` : '');
-              const waUrl = `https://wa.me/${toWhatsAppNumber(booking.phone)}?text=${encodeURIComponent(greeting)}`;
-              return (
-                <li key={booking.id}>
-                  <details className="rm-details">
-                    <summary>
-                      <span className="rm-person-summary-inner">
-                        <span>
-                          <span className="rm-person-name">{booking.name}</span>
-                          <span className="rm-person-pass">{booking.accessType}</span>
+        <div className="rm-split-main">
+          {slotBookings.length === 0 ? (
+            <p className="rm-hint">Todavía no hay alumnos en esta clase.</p>
+          ) : (
+            <ul className="rm-slots-list rm-roster-grid" role="list">
+              {slotBookings.map((booking) => {
+                const note = bookingNote(booking);
+                const firstName = booking.name.split(' ')[0];
+                const greeting =
+                  `Hola ${firstName}, te escribe el coach de REMATCH. ` +
+                  `Te esperamos el ${listDay?.fullLabel ?? ''} a las ${listSlot?.time ?? ''}.` +
+                  (note ? ` Vi tu aviso (${note}) y lo tomamos en cuenta.` : '');
+                const waUrl = `https://wa.me/${toWhatsAppNumber(booking.phone)}?text=${encodeURIComponent(greeting)}`;
+                return (
+                  <li key={booking.id}>
+                    <details className="rm-details">
+                      <summary>
+                        <span className="rm-person-summary-inner">
+                          <span>
+                            <span className="rm-person-name">{booking.name}</span>
+                            <span className="rm-person-pass">{booking.accessType}</span>
+                          </span>
+                          <span className={`rm-pill-status ${booking.status}`}>{STATUS_LABEL[booking.status]}</span>
                         </span>
-                        <span className={`rm-pill-status ${booking.status}`}>{STATUS_LABEL[booking.status]}</span>
-                      </span>
-                    </summary>
-                    <div className="rm-details-body">
-                      <p className="rm-person-pass">WhatsApp: {booking.phone}</p>
-                      {note && <p className="rm-note-highlight">{note}</p>}
-                      <div className="rm-person-actions">
-                        <a className="rm-btn-wa-sm" href={waUrl} target="_blank" rel="noopener noreferrer">
-                          Escribir por WhatsApp
-                        </a>
-                        <button
-                          type="button"
-                          className="rm-btn-ghost-sm"
-                          onClick={() => store.removeBooking(booking.id)}
-                          aria-label={`Quitar a ${booking.name} de la clase`}
-                        >
-                          Quitar
-                        </button>
+                      </summary>
+                      <div className="rm-details-body">
+                        <p className="rm-person-pass">WhatsApp: {booking.phone}</p>
+                        {note && <p className="rm-note-highlight">{note}</p>}
+                        <div className="rm-person-actions">
+                          <a className="rm-btn-wa-sm" href={waUrl} target="_blank" rel="noopener noreferrer">
+                            Escribir por WhatsApp
+                          </a>
+                          <button
+                            type="button"
+                            className="rm-btn-ghost-sm"
+                            onClick={() => store.removeBooking(booking.id)}
+                            aria-label={`Quitar a ${booking.name} de la clase`}
+                          >
+                            Quitar
+                          </button>
+                        </div>
                       </div>
-                    </div>
-                  </details>
-                </li>
-              );
-            })}
-          </ul>
-        )}
-      </>
+                    </details>
+                  </li>
+                );
+              })}
+            </ul>
+          )}
+        </div>
+      </div>
     );
   }
 
@@ -425,63 +428,67 @@ export function OwnerPanel() {
         </div>
 
         {scheduleMode === 'hoy' && scheduleDay && (
-          <>
-            <div className="rm-days-grid" role="group" aria-label="Día a editar">
-              {days.map((day) => (
-                <button
-                  key={day.key}
-                  type="button"
-                  className="rm-day-btn"
-                  aria-pressed={day.key === scheduleDay.key}
-                  aria-label={day.fullLabel}
-                  onClick={() => setScheduleDayKey(day.key)}
-                >
-                  <span className="rm-day-short">{day.shortDay}</span>
-                  <span className="rm-day-num">{day.dayNumber}</span>
-                </button>
-              ))}
+          <div className="rm-split-grid">
+            <div className="rm-split-aside">
+              <div className="rm-days-grid" role="group" aria-label="Día a editar">
+                {days.map((day) => (
+                  <button
+                    key={day.key}
+                    type="button"
+                    className="rm-day-btn"
+                    aria-pressed={day.key === scheduleDay.key}
+                    aria-label={day.fullLabel}
+                    onClick={() => setScheduleDayKey(day.key)}
+                  >
+                    <span className="rm-day-short">{day.shortDay}</span>
+                    <span className="rm-day-num">{day.dayNumber}</span>
+                  </button>
+                ))}
+              </div>
+
+              <div className="rm-field">
+                <label className="rm-label" htmlFor="owner-day-focus">Entrenamiento del día</label>
+                <input
+                  id="owner-day-focus"
+                  type="text"
+                  className="rm-input"
+                  placeholder="RUN · HYROX"
+                  value={scheduleDay.focus}
+                  onChange={(event) => store.updateDayFocus(scheduleDay.key, event.target.value)}
+                />
+              </div>
+
+              <button type="button" className="rm-primary-btn" onClick={openAddSlot}>
+                + Agregar horario
+              </button>
             </div>
 
-            <div className="rm-field">
-              <label className="rm-label" htmlFor="owner-day-focus">Entrenamiento del día</label>
-              <input
-                id="owner-day-focus"
-                type="text"
-                className="rm-input"
-                placeholder="RUN · HYROX"
-                value={scheduleDay.focus}
-                onChange={(event) => store.updateDayFocus(scheduleDay.key, event.target.value)}
-              />
-            </div>
-
-            <div className="rm-slots-list">
-              {scheduleDay.slots.map((slot) => (
-                <label key={slot.id} className="rm-switch-row">
-                  <span className="rm-switch-label-txt">
-                    {slot.time}
-                    {slot.tag && <span className="rm-slot-tag">{slot.tag}</span>}
-                    <span className="rm-summary-sub">
-                      {store.occupiedFor(scheduleDay.key, slot.id)} de {slot.capacity}
+            <div className="rm-split-main">
+              <div className="rm-slots-list rm-switches-grid">
+                {scheduleDay.slots.map((slot) => (
+                  <label key={slot.id} className="rm-switch-row">
+                    <span className="rm-switch-label-txt">
+                      {slot.time}
+                      {slot.tag && <span className="rm-slot-tag">{slot.tag}</span>}
+                      <span className="rm-summary-sub">
+                        {store.occupiedFor(scheduleDay.key, slot.id)} de {slot.capacity}
+                      </span>
                     </span>
-                  </span>
-                  <input
-                    type="checkbox"
-                    {...SWITCH_ATTR}
-                    checked={slot.enabled}
-                    onChange={() => store.toggleSlotEnabled(scheduleDay.key, slot.id)}
-                  />
-                </label>
-              ))}
+                    <input
+                      type="checkbox"
+                      {...SWITCH_ATTR}
+                      checked={slot.enabled}
+                      onChange={() => store.toggleSlotEnabled(scheduleDay.key, slot.id)}
+                    />
+                  </label>
+                ))}
+              </div>
             </div>
-
-            <button type="button" className="rm-primary-btn" onClick={openAddSlot}>
-              + Agregar horario
-            </button>
-          </>
+          </div>
         )}
 
         {scheduleMode === 'semana' && (
-          <div className="rm-slots-list">
+          <div className="rm-week-grid">
             {weeklyProgram.map((item) => (
               <div key={item.id} className="rm-week-row">
                 <label className="rm-week-day" htmlFor={`week-${item.id}`}>
@@ -504,8 +511,8 @@ export function OwnerPanel() {
 
   function renderMarca() {
     return (
-      <>
-        <div className="rm-slots-list" role="group" aria-label="Estilo de la marca">
+      <div className="rm-two-col">
+        <div className="rm-col-stack" role="group" aria-label="Estilo de la marca">
           {THEMES.map((item) => (
             <button
               key={item.id}
@@ -526,29 +533,31 @@ export function OwnerPanel() {
           ))}
         </div>
 
-        <div className="rm-upload-box">
-          <UploadIcon />
-          <label className="rm-label" htmlFor="owner-logo-file">Sube tu logo</label>
-          <span className="rm-upload-rule">Marco automático: máx. 180 x 44 px</span>
-          <span className="rm-hint">PNG, JPG o SVG de hasta 2 MB</span>
-          <input id="owner-logo-file" type="file" accept="image/*" onChange={handleLogoFile} />
-          {customLogo && (
-            <div className="rm-logo-frame">
-              <img src={customLogo} alt="Vista previa del logo subido" />
-            </div>
-          )}
-          <p className="rm-hint" role="status">{logoMessage}</p>
-          {customLogo && (
-            <button type="button" className="rm-text-action" onClick={restoreLogo}>
-              Restaurar logo oficial
-            </button>
-          )}
-        </div>
+        <div className="rm-col-stack">
+          <div className="rm-upload-box">
+            <UploadIcon />
+            <label className="rm-label" htmlFor="owner-logo-file">Sube tu logo</label>
+            <span className="rm-upload-rule">Marco automático: máx. 180 x 44 px</span>
+            <span className="rm-hint">PNG, JPG o SVG de hasta 2 MB</span>
+            <input id="owner-logo-file" type="file" accept="image/*" onChange={handleLogoFile} />
+            {customLogo && (
+              <div className="rm-logo-frame">
+                <img src={customLogo} alt="Vista previa del logo subido" />
+              </div>
+            )}
+            <p className="rm-hint" role="status">{logoMessage}</p>
+            {customLogo && (
+              <button type="button" className="rm-text-action" onClick={restoreLogo}>
+                Restaurar logo oficial
+              </button>
+            )}
+          </div>
 
-        <button type="button" className="rm-text-action" onClick={handleReset}>
-          Reiniciar datos de muestra
-        </button>
-      </>
+          <button type="button" className="rm-text-action" onClick={handleReset}>
+            Reiniciar datos de muestra
+          </button>
+        </div>
+      </div>
     );
   }
 

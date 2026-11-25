@@ -16,24 +16,87 @@ html {
 }
 
 body {
-  min-height: 100dvh;
+  min-block-size: 100dvh;
   background: radial-gradient(circle at 50% 0%, rgba(225, 29, 46, 0.14), transparent 46%), var(--rm-bg);
-  padding: 12px 12px 32px;
+  padding: clamp(12px, 2.5dvw, 32px) clamp(12px, 2.5dvw, 32px) clamp(28px, 4dvh, 48px);
 }
 
 .rm-shell {
-  width: 100%;
-  max-width: 460px;
-  margin: 0 auto;
+  inline-size: 100%;
+  max-inline-size: 520px;
+  margin-inline: auto;
   display: flex;
   flex-direction: column;
   gap: 14px;
 }
 
-/* Top Switch Bar (Discrete Cliente | Dueño) */
+/* Main App Card — container query context (inline-size only) */
+.rm-card-frame {
+  container: rm-stage / inline-size;
+  background: var(--rm-bg);
+  border: 1px solid var(--rm-border);
+  border-radius: 24px;
+  padding: clamp(16px, 2.5dvw, 28px);
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.42);
+}
+
+.rm-stage-main {
+  min-inline-size: 0;
+}
+
+/* Unified Topbar (Mobile stacked -> PC 3 zones, DOM order preserved) */
+.rm-topbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid var(--rm-border);
+}
+
+.rm-topbar-brand {
+  flex: 1 1 100%;
+  min-inline-size: 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px 12px;
+}
+
+.rm-logo-frame {
+  block-size: 44px;
+  max-inline-size: 180px;
+  display: flex;
+  align-items: center;
+  overflow: hidden;
+}
+
+.rm-logo-frame img {
+  max-block-size: 44px;
+  max-inline-size: 180px;
+  inline-size: auto;
+  block-size: auto;
+  object-fit: contain;
+  display: block;
+}
+
+.rm-header-sub {
+  font-size: 12px;
+  color: var(--rm-text-muted);
+}
+
 .rm-mode-switcher {
+  /* Base = ancho de contenido: si no cabe junto a la acción, la acción baja de línea
+     en vez de comprimir el switcher (antes 220px dejaba que los botones se encimaran). */
+  flex: 1 1 auto;
+  min-inline-size: 0;
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 4px;
   background: var(--rm-surface);
   border: 1px solid var(--rm-border);
@@ -43,7 +106,8 @@ body {
 
 .rm-mode-btn {
   appearance: none;
-  min-height: 44px;
+  min-block-size: 44px;
+  padding: 0 12px;
   border: none;
   border-radius: 10px;
   background: transparent;
@@ -56,7 +120,14 @@ body {
   align-items: center;
   justify-content: center;
   gap: 7px;
+  min-inline-size: 0;
+  text-align: center;
+  line-height: 1.15;
   transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.rm-mode-btn > svg {
+  flex-shrink: 0;
 }
 
 .rm-mode-btn:hover {
@@ -75,61 +146,21 @@ body {
   box-shadow: inset 0 0 0 1px rgba(255, 209, 0, 0.45);
 }
 
-/* Main App Card */
-.rm-card-frame {
-  background: var(--rm-bg);
-  border: 1px solid var(--rm-border);
-  border-radius: 24px;
-  padding: 16px;
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.42);
-}
-
-/* Brand Header */
-.rm-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-  padding-bottom: 12px;
-  border-bottom: 1px solid var(--rm-border);
-}
-
-.rm-logo-frame {
-  height: 44px;
-  max-width: 180px;
-  display: flex;
-  align-items: center;
-  overflow: hidden;
-}
-
-.rm-logo-frame img {
-  max-height: 44px;
-  max-width: 180px;
-  width: auto;
-  height: auto;
-  object-fit: contain;
-  display: block;
-}
-
-.rm-header-sub {
-  font-size: 12px;
-  color: var(--rm-text-muted);
-  margin-top: 2px;
+.rm-topbar-action {
+  flex: 0 0 auto;
+  min-inline-size: 0;
 }
 
 .rm-wa-pill {
   appearance: none;
   text-decoration: none;
-  min-height: 44px;
-  padding: 0 13px;
+  min-block-size: 44px;
+  padding: 0 14px;
   border-radius: 999px;
   background: rgba(37, 211, 102, 0.14);
   border: 1px solid rgba(37, 211, 102, 0.42);
   color: var(--rm-green-text);
-  font-size: 13px;
+  font-size: 13.5px;
   font-weight: 700;
   display: inline-flex;
   align-items: center;
@@ -142,18 +173,49 @@ body {
 }
 
 .rm-owner-badge {
-  min-height: 36px;
-  padding: 0 11px;
+  min-block-size: 44px;
+  padding: 0 12px;
   border-radius: 999px;
   background: rgba(255, 209, 0, 0.12);
   border: 1px solid rgba(255, 209, 0, 0.42);
   color: var(--rm-yellow);
   font-family: var(--font-mono);
-  font-size: 11.5px;
+  font-size: 12px;
   font-weight: 600;
   display: inline-flex;
   align-items: center;
   gap: 6px;
+  white-space: nowrap;
+}
+
+/* Responsive Layout Wrappers */
+.rm-split-grid,
+.rm-two-col {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 16px;
+  align-items: start;
+}
+
+.rm-split-aside,
+.rm-split-main,
+.rm-col-stack {
+  min-inline-size: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.rm-fields-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 14px;
+}
+
+.rm-week-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 10px;
 }
 
 /* Client Flow — Ultra simple & accessible */
@@ -166,7 +228,7 @@ body {
 
 .rm-step-title {
   font-family: var(--font-display);
-  font-size: 28px;
+  font-size: clamp(1.65rem, 1.3rem + 1.2dvw, 2.25rem);
   font-weight: 800;
   letter-spacing: 0.01em;
   line-height: 1.05;
@@ -181,13 +243,13 @@ body {
 
 .rm-days-grid {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 8px;
 }
 
 .rm-day-btn {
   appearance: none;
-  min-height: 68px;
+  min-block-size: 68px;
   background: var(--rm-surface);
   border: 1px solid var(--rm-border);
   border-radius: 14px;
@@ -227,17 +289,27 @@ body {
   line-height: 1;
 }
 
+.rm-focus-card {
+  background: var(--rm-surface);
+  border: 1px solid var(--rm-border);
+  border-left: 4px solid var(--rm-accent);
+  border-radius: 14px;
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
 .rm-focus-row {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 8px;
-  padding: 4px 2px;
 }
 
 .rm-focus-name {
   font-family: var(--font-display);
-  font-size: 25px;
+  font-size: clamp(1.45rem, 1.2rem + 0.8dvw, 1.85rem);
   font-weight: 800;
   color: var(--rm-text);
 }
@@ -247,16 +319,26 @@ body {
   color: var(--rm-text-muted);
 }
 
+.rm-focus-loc {
+  font-size: 12px;
+  color: var(--rm-text-muted);
+}
+
 .rm-slots-list {
+  list-style: none;
   display: flex;
   flex-direction: column;
   gap: 10px;
 }
 
+.rm-slots-list > li {
+  min-inline-size: 0;
+}
+
 .rm-slot-btn {
   appearance: none;
-  width: 100%;
-  min-height: 60px;
+  inline-size: 100%;
+  min-block-size: 62px;
   background: var(--rm-surface);
   border: 1px solid var(--rm-border);
   border-radius: 16px;
@@ -286,6 +368,7 @@ body {
   display: flex;
   align-items: center;
   gap: 10px;
+  min-inline-size: 0;
 }
 
 .rm-slot-hour {
@@ -315,6 +398,7 @@ body {
   font-size: 14px;
   font-weight: 700;
   color: var(--rm-green-text);
+  white-space: nowrap;
 }
 
 .rm-spots-txt.low {
@@ -350,13 +434,29 @@ body {
   line-height: 1.1;
 }
 
+.rm-aside-note {
+  background: var(--rm-surface);
+  border: 1px solid var(--rm-border);
+  border-radius: 14px;
+  padding: 12px 14px;
+  display: none;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.rm-aside-note-title {
+  font-size: 13.5px;
+  font-weight: 700;
+  color: var(--rm-text);
+}
+
 .rm-link-btn {
   appearance: none;
   background: var(--rm-surface-elevated);
   border: 1px solid var(--rm-border);
   color: var(--rm-text);
   border-radius: 10px;
-  min-height: 44px;
+  min-block-size: 44px;
   padding: 0 12px;
   font-family: inherit;
   font-size: 13px;
@@ -372,6 +472,7 @@ body {
 }
 
 .rm-field {
+  min-inline-size: 0;
   display: flex;
   flex-direction: column;
   gap: 5px;
@@ -390,8 +491,8 @@ body {
 }
 
 .rm-input {
-  width: 100%;
-  min-height: 50px;
+  inline-size: 100%;
+  min-block-size: 50px;
   background: var(--rm-surface);
   border: 1.5px solid var(--rm-border-strong);
   border-radius: 13px;
@@ -431,13 +532,13 @@ body {
 
 .rm-passes-grid {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 8px;
 }
 
 .rm-pass-btn {
   appearance: none;
-  min-height: 48px;
+  min-block-size: 48px;
   background: var(--rm-surface);
   border: 1.5px solid var(--rm-border);
   border-radius: 12px;
@@ -470,7 +571,7 @@ details.rm-details.dashed {
 
 details.rm-details > summary {
   list-style: none;
-  min-height: 50px;
+  min-block-size: 50px;
   padding: 12px 14px;
   display: flex;
   align-items: center;
@@ -540,7 +641,7 @@ details.rm-details:not([open])::details-content {
 
 .rm-chip-btn {
   appearance: none;
-  min-height: 44px;
+  min-block-size: 44px;
   padding: 0 12px;
   border-radius: 999px;
   background: var(--rm-surface-elevated);
@@ -560,8 +661,8 @@ details.rm-details:not([open])::details-content {
 
 .rm-primary-btn {
   appearance: none;
-  width: 100%;
-  min-height: 54px;
+  inline-size: 100%;
+  min-block-size: 54px;
   border: none;
   border-radius: 15px;
   background: var(--rm-red);
@@ -591,8 +692,8 @@ details.rm-details:not([open])::details-content {
 
 .rm-secondary-btn {
   appearance: none;
-  width: 100%;
-  min-height: 48px;
+  inline-size: 100%;
+  min-block-size: 48px;
   border-radius: 13px;
   background: var(--rm-surface);
   border: 1px solid var(--rm-border-strong);
@@ -635,7 +736,7 @@ details.rm-details:not([open])::details-content {
 .rm-confirm-name {
   overflow-wrap: anywhere;
   font-family: var(--font-display);
-  font-size: 32px;
+  font-size: clamp(1.85rem, 1.5rem + 0.9dvw, 2.35rem);
   font-weight: 800;
   line-height: 1.02;
 }
@@ -650,7 +751,7 @@ details.rm-details:not([open])::details-content {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  min-height: 44px;
+  min-block-size: 44px;
   font-size: 13.5px;
   color: var(--rm-text-muted);
   text-decoration: underline;
@@ -695,7 +796,7 @@ details.rm-details:not([open])::details-content {
 
 .rm-wa-btn {
   appearance: none;
-  min-height: 46px;
+  min-block-size: 46px;
   border-radius: 11px;
   border: 1px solid transparent;
   font-family: inherit;
@@ -743,7 +844,7 @@ details.rm-details:not([open])::details-content {
 
 .rm-owner-tab {
   appearance: none;
-  min-height: 44px;
+  min-block-size: 44px;
   border: none;
   border-radius: 8px;
   background: transparent;
@@ -766,8 +867,8 @@ details.rm-details:not([open])::details-content {
 }
 
 .rm-select {
-  width: 100%;
-  min-height: 48px;
+  inline-size: 100%;
+  min-block-size: 48px;
   background: var(--rm-surface);
   border: 1.5px solid var(--rm-border-strong);
   border-radius: 12px;
@@ -801,7 +902,7 @@ details.rm-details:not([open])::details-content {
 
 .rm-compact-btn {
   appearance: none;
-  min-height: 44px;
+  min-block-size: 44px;
   padding: 0 13px;
   border: none;
   border-radius: 10px;
@@ -816,6 +917,7 @@ details.rm-details:not([open])::details-content {
 
 .rm-person-summary-inner {
   flex: 1;
+  min-inline-size: 0;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -872,7 +974,7 @@ details.rm-details:not([open])::details-content {
 
 .rm-btn-wa-sm {
   flex: 1;
-  min-height: 44px;
+  min-block-size: 44px;
   border-radius: 10px;
   background: #1e9e51;
   color: #ffffff;
@@ -886,7 +988,7 @@ details.rm-details:not([open])::details-content {
 
 .rm-btn-ghost-sm {
   appearance: none;
-  min-height: 44px;
+  min-block-size: 44px;
   padding: 0 14px;
   border: 1px solid var(--rm-border-strong);
   border-radius: 10px;
@@ -910,7 +1012,7 @@ details.rm-details:not([open])::details-content {
 
 .rm-seg-btn {
   appearance: none;
-  min-height: 44px;
+  min-block-size: 44px;
   border: none;
   border-radius: 8px;
   background: transparent;
@@ -932,7 +1034,8 @@ details.rm-details:not([open])::details-content {
   border: 1px solid var(--rm-border);
   border-radius: 13px;
   padding: 11px 14px;
-  min-height: 54px;
+  min-block-size: 54px;
+  min-inline-size: 0;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -943,9 +1046,11 @@ details.rm-details:not([open])::details-content {
 .rm-switch-label-txt {
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
   gap: 8px;
   font-size: 15.5px;
   font-weight: 700;
+  min-inline-size: 0;
 }
 
 input[type='checkbox'][switch] {
@@ -954,6 +1059,7 @@ input[type='checkbox'][switch] {
   cursor: pointer;
   inline-size: 46px;
   block-size: 26px;
+  flex-shrink: 0;
 }
 
 input[type='checkbox'][switch]:focus-visible {
@@ -976,13 +1082,14 @@ input[type='checkbox'][switch]:focus-visible {
   font-size: 20px;
   font-weight: 800;
   color: var(--rm-yellow);
-  width: 38px;
+  inline-size: 38px;
+  flex-shrink: 0;
 }
 
 .rm-week-input {
   flex: 1;
-  min-width: 0;
-  min-height: 44px;
+  min-inline-size: 0;
+  min-block-size: 44px;
   background: var(--rm-bg);
   border: 1px solid var(--rm-border-strong);
   border-radius: 9px;
@@ -996,8 +1103,8 @@ input[type='checkbox'][switch]:focus-visible {
 /* Brand & Theme Selector */
 .rm-theme-card {
   appearance: none;
-  width: 100%;
-  min-height: 62px;
+  inline-size: 100%;
+  min-block-size: 62px;
   background: var(--rm-surface);
   border: 1.5px solid var(--rm-border);
   border-radius: 14px;
@@ -1018,8 +1125,8 @@ input[type='checkbox'][switch]:focus-visible {
 }
 
 .rm-theme-dot {
-  width: 22px;
-  height: 22px;
+  inline-size: 22px;
+  block-size: 22px;
   border-radius: 50%;
   flex-shrink: 0;
 }
@@ -1042,21 +1149,6 @@ input[type='checkbox'][switch]:focus-visible {
   color: var(--rm-yellow);
 }
 
-.rm-file-btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 46px;
-  padding: 0 16px;
-  border-radius: 11px;
-  background: var(--rm-surface-elevated);
-  border: 1px solid var(--rm-border-strong);
-  color: var(--rm-text);
-  font-size: 14px;
-  font-weight: 700;
-  cursor: pointer;
-}
-
 .rm-text-action {
   appearance: none;
   background: transparent;
@@ -1066,13 +1158,13 @@ input[type='checkbox'][switch]:focus-visible {
   font-size: 13px;
   text-decoration: underline;
   cursor: pointer;
-  min-height: 44px;
+  min-block-size: 44px;
   padding: 6px 10px;
 }
 
 .rm-upload-box input[type='file'] {
-  max-width: 100%;
-  min-height: 44px;
+  max-inline-size: 100%;
+  min-block-size: 44px;
   font-family: inherit;
   font-size: 14px;
   color: var(--rm-text-muted);
@@ -1086,8 +1178,8 @@ input[type='checkbox'][switch]:focus-visible {
 /* Modern Web Guidance: Native <dialog> */
 dialog.rm-dialog {
   margin: auto;
-  width: min(92vw, 420px);
-  max-height: 88dvh;
+  inline-size: min(92dvw, 480px);
+  max-block-size: 88dvh;
   background: var(--rm-surface);
   color: var(--rm-text);
   border: 1px solid var(--rm-border-strong);
@@ -1150,4 +1242,96 @@ dialog.rm-dialog::backdrop {
   font-size: 12px;
   color: var(--rm-text-muted);
   padding-top: 4px;
+}
+
+/* ---------- Desktop Shell & Component Container Queries ---------- */
+
+@media (min-width: 840px) {
+  .rm-shell {
+    max-inline-size: 1040px;
+  }
+}
+
+@container rm-stage (inline-size >= 720px) {
+  .rm-topbar {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+    align-items: center;
+    gap: 16px;
+  }
+
+  .rm-topbar-brand {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 2px;
+  }
+
+  .rm-mode-switcher {
+    min-inline-size: 290px;
+  }
+
+  .rm-topbar-action {
+    justify-self: end;
+  }
+
+  .rm-split-grid {
+    grid-template-columns: minmax(260px, 320px) minmax(0, 1fr);
+    gap: 24px;
+  }
+
+  .rm-two-col {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 22px;
+  }
+
+  .rm-split-aside .rm-days-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .rm-slots-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(220px, 100%), 1fr));
+    gap: 12px;
+  }
+
+  .rm-switches-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(220px, 100%), 1fr));
+    gap: 10px;
+  }
+
+  .rm-fields-row {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+  }
+
+  .rm-passes-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+
+  .rm-aside-note {
+    display: flex;
+  }
+
+  .rm-week-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+  }
+
+  .rm-owner-tabs {
+    max-inline-size: 460px;
+  }
+
+  .rm-seg {
+    max-inline-size: 320px;
+  }
+}
+
+@container rm-stage (inline-size >= 860px) {
+  .rm-roster-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    align-items: start;
+    gap: 12px;
+  }
 }

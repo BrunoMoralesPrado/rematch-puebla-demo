@@ -11,7 +11,7 @@ Copia y pega tal cual. Los links ya van completos.
 
 https://brunomoralesprado.github.io/rematch-puebla-demo/
 
-La pueden abrir directo en su celular. Arriba vienen dos botones: en "Vista Cliente" ven cómo un alumno aparta su lugar en segundos, y en "Vista Dueño" pueden mover los horarios del día o de la semana y hasta cambiar el logo al de Navidad o de temporada.
+La pueden abrir directo en su celular o computadora. Arriba vienen dos botones: en "Vista Cliente" ven cómo un alumno aparta su lugar en segundos, y en "Vista Dueño" pueden mover los horarios del día o de la semana y hasta cambiar el logo al de Navidad o de temporada.
 
 Algo importante: los recordatorios de WhatsApp salen de un número aparte, así que su WhatsApp de atención se queda igualito, para seguir platicando con sus alumnos como siempre.
 
@@ -27,7 +27,7 @@ Cualquier duda me dicen y con gusto lo vemos. ¡Saludos!
 ## Opción 2 — Ultra breve (se lee en 10 segundos)
 
 ```
-¡Hola, Rematch! Ya quedó la muestra que platicamos, pruébenla desde su cel:
+¡Hola, Rematch! Ya quedó la muestra que platicamos, pruébenla desde su cel o compu:
 https://brunomoralesprado.github.io/rematch-puebla-demo/
 
 Y aquí los 2 planes con precios:
