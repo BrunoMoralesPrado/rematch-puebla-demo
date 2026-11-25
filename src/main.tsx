@@ -5,7 +5,7 @@ import './styles/app.css';
 import App from './App';
 
 if (!('switch' in HTMLInputElement.prototype)) {
-  import('input-switch-polyfill');
+  document.documentElement.classList.add('no-native-switch');
 }
 
 createRoot(document.getElementById('root')!).render(

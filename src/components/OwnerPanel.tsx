@@ -15,7 +15,7 @@ import {
   type BrandTheme,
   type DaySchedule
 } from '../data/rematchData';
-import { useRematchStore } from '../state/useRematchStore';
+import { useRematchStore, type LastActivity } from '../state/useRematchStore';
 
 type OwnerTab = 'reservas' | 'horarios' | 'marca';
 type ScheduleMode = 'hoy' | 'semana';
@@ -33,6 +33,12 @@ const STATUS_LABEL: Record<BookingStatus, string> = {
   cancelled: 'Cancelado'
 };
 
+const ACTIVITY_TEXT: Record<LastActivity['action'], string> = {
+  created: 'apartó lugar',
+  confirmed: 'confirmó por WhatsApp',
+  cancelled: 'liberó su lugar'
+};
+
 const OWNER_ACCESS_OPTIONS: AccessType[] = [...ACCESS_OPTIONS, 'Clase muestra'];
 const SLOT_TAG_OPTIONS = ['', 'GAINZ', 'HYROX', 'BOX'] as const;
 const MAX_LOGO_BYTES = 2 * 1024 * 1024;
@@ -43,7 +49,7 @@ const THEMES: Array<{ id: BrandTheme; title: string; desc: string; dot: string }
     id: 'xmas',
     title: 'Navidad (Temporada)',
     desc: 'Verde y rojo para diciembre',
-    dot: 'linear-gradient(135deg, #15803D 50%, #E11D2E 50%)'
+    dot: 'linear-gradient(135deg, #16A34A 50%, #E11D2E 50%)'
   },
   { id: 'hyrox', title: 'HYROX Race', desc: 'Amarillo de competencia', dot: '#FFD100' }
 ];
@@ -144,7 +150,7 @@ function useDialogBehavior(ref: RefObject<HTMLDialogElement | null>, onClose: ()
 
 export function OwnerPanel() {
   const store = useRematchStore();
-  const { days, bookings, weeklyProgram, theme, customLogo } = store;
+  const { days, bookings, weeklyProgram, theme, customLogo, lastActivity } = store;
 
   const [tab, setTab] = useState<OwnerTab>('reservas');
   const tabRefs = useRef<Record<OwnerTab, HTMLButtonElement | null>>({
@@ -176,6 +182,21 @@ export function OwnerPanel() {
   // Marca
   const [logoMessage, setLogoMessage] = useState('');
 
+  // Enfoca automáticamente la clase de la última reserva/confirmación/cancelación.
+  // Se dispara solo con un movimiento NUEVO (clave estable), no cuando el objeto se recrea
+  // al releer localStorage desde otra pestaña; así un cambio manual en los selects no se pisa.
+  const activityKey = lastActivity
+    ? `${lastActivity.bookingId}|${lastActivity.action}|${lastActivity.at}`
+    : null;
+  const activityRef = useRef(lastActivity);
+  activityRef.current = lastActivity;
+  useEffect(() => {
+    const activity = activityRef.current;
+    if (!activity) return;
+    setListDayKey(activity.dayKey);
+    setListSlotId(activity.slotId);
+  }, [activityKey]);
+
   useDialogBehavior(addBookingDialogRef, () => {
     setNewName('');
     setNewPhone('');
@@ -197,6 +218,11 @@ export function OwnerPanel() {
       ? bookings.filter((booking) => booking.dayKey === listDay.key && booking.slotId === listSlot.id)
       : [];
   const listOccupied = listDay && listSlot ? store.occupiedFor(listDay.key, listSlot.id) : 0;
+  const confirmedCount = slotBookings.filter((booking) => booking.status === 'confirmed').length;
+  const slotActivity =
+    lastActivity && listDay && listSlot && lastActivity.dayKey === listDay.key && lastActivity.slotId === listSlot.id
+      ? lastActivity
+      : null;
 
   const scheduleDay = days.find((day) => day.key === scheduleDayKey) ?? days[0];
 
@@ -340,13 +366,22 @@ export function OwnerPanel() {
 
           {listSlot && (
             <div className="rm-summary-bar">
-              <span className="rm-summary-title">
-                {listSlot.time} {listSlot.tag ?? ''} · {listOccupied} de {listSlot.capacity}
-              </span>
+              <div>
+                <p className="rm-summary-title">
+                  {listSlot.time} {listSlot.tag ?? ''} · {listOccupied} de {listSlot.capacity}
+                </p>
+                <p className="rm-summary-sub">{confirmedCount} confirmados</p>
+              </div>
               <button type="button" className="rm-compact-btn" onClick={openAddBooking}>
                 + Anotar
               </button>
             </div>
+          )}
+
+          {slotActivity && (
+            <p className="rm-activity-note" role="status">
+              Último movimiento: {slotActivity.name} {ACTIVITY_TEXT[slotActivity.action]}
+            </p>
           )}
 
           <p className="rm-hint">Toca un nombre para ver detalles</p>
@@ -476,6 +511,7 @@ export function OwnerPanel() {
                     </span>
                     <input
                       type="checkbox"
+                      role="switch"
                       {...SWITCH_ATTR}
                       checked={slot.enabled}
                       onChange={() => store.toggleSlotEnabled(scheduleDay.key, slot.id)}

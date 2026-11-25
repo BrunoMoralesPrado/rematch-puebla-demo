@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { REMATCH_BUSINESS, type BrandTheme } from './data/rematchData';
 import { BrandLogo } from './components/BrandLogo';
 import { ClientFlow } from './components/ClientFlow';
@@ -57,6 +57,17 @@ export default function App() {
   const store = useRematchStore();
   const [mode, setMode] = useState<ViewMode>('client');
   const shellClass = ['rm-shell', THEME_CLASS[store.theme]].filter(Boolean).join(' ');
+
+  // Sincroniza la clase del tema en :root para que body y <dialog> en top-layer hereden los colores.
+  useEffect(() => {
+    const root = document.documentElement;
+    root.classList.remove('theme-xmas', 'theme-hyrox');
+    const cls = THEME_CLASS[store.theme];
+    if (cls) root.classList.add(cls);
+    return () => {
+      root.classList.remove('theme-xmas', 'theme-hyrox');
+    };
+  }, [store.theme]);
 
   return (
     <div className={shellClass}>

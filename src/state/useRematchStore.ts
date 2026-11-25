@@ -18,12 +18,23 @@ const FOLIO_CHARS = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
 
 export type DayKey = DaySchedule['key'];
 
+export interface LastActivity {
+  bookingId: string;
+  dayKey: DayKey;
+  slotId: string;
+  name: string;
+  action: 'created' | 'confirmed' | 'cancelled';
+  /** Marca de tiempo: identifica cada movimiento aunque el objeto se recree al leer localStorage. */
+  at: number;
+}
+
 export interface RematchState {
   days: DaySchedule[];
   weeklyProgram: WeeklyItem[];
   bookings: Booking[];
   theme: BrandTheme;
   customLogo: string | null;
+  lastActivity: LastActivity | null;
 }
 
 export interface AddBookingInput {
@@ -93,11 +104,13 @@ function createInitialState(): RematchState {
     weeklyProgram: structuredClone(INITIAL_WEEKLY_PROGRAM),
     bookings: structuredClone(INITIAL_BOOKINGS),
     theme: 'classic',
-    customLogo: null
+    customLogo: null,
+    lastActivity: null
   };
 }
 
-function isValidState(value: unknown): value is RematchState {
+function isValidState(value: unknown): value is Partial<RematchState> &
+  Pick<RematchState, 'days' | 'weeklyProgram' | 'bookings' | 'theme' | 'customLogo'> {
   if (!value || typeof value !== 'object') return false;
   const candidate = value as Partial<RematchState>;
   return (
@@ -111,13 +124,44 @@ function isValidState(value: unknown): value is RematchState {
   );
 }
 
+const VALID_ACTIONS: LastActivity['action'][] = ['created', 'confirmed', 'cancelled'];
+
+/** Estado previo sin lastActivity, o con forma vieja/dañada, se normaliza a null o se completa. */
+function sanitizeLastActivity(value: unknown, days: DaySchedule[]): LastActivity | null {
+  if (!value || typeof value !== 'object') return null;
+  const c = value as Partial<LastActivity>;
+  if (
+    typeof c.bookingId !== 'string' ||
+    typeof c.slotId !== 'string' ||
+    typeof c.name !== 'string' ||
+    !c.action ||
+    !VALID_ACTIONS.includes(c.action) ||
+    !days.some((day) => day.key === c.dayKey)
+  ) {
+    return null;
+  }
+  return {
+    bookingId: c.bookingId,
+    dayKey: c.dayKey as DayKey,
+    slotId: c.slotId,
+    name: c.name,
+    action: c.action,
+    at: typeof c.at === 'number' ? c.at : 0
+  };
+}
+
 function loadState(): RematchState {
   try {
     if (typeof window === 'undefined' || !window.localStorage) return createInitialState();
     const raw = window.localStorage.getItem(STORAGE_KEY);
     if (!raw) return createInitialState();
     const parsed: unknown = JSON.parse(raw);
-    if (isValidState(parsed)) return parsed;
+    if (isValidState(parsed)) {
+      return {
+        ...parsed,
+        lastActivity: sanitizeLastActivity(parsed.lastActivity, parsed.days)
+      };
+    }
     window.localStorage.removeItem(STORAGE_KEY);
   } catch {
     // localStorage bloqueado o datos dañados: arrancamos con la muestra.
@@ -159,7 +203,6 @@ function getSnapshot(): RematchState {
   return state;
 }
 
-// Si la demo está abierta en dos pestañas, se mantienen sincronizadas.
 if (typeof window !== 'undefined') {
   window.addEventListener('storage', (event) => {
     if (event.key !== STORAGE_KEY) return;
@@ -206,23 +249,50 @@ function addBooking(input: AddBookingInput): Booking {
     status: 'confirmed',
     createdAt: new Date().toISOString()
   };
-  setState((prev) => ({ ...prev, bookings: [booking, ...prev.bookings] }));
+  setState((prev) => ({
+    ...prev,
+    bookings: [booking, ...prev.bookings],
+    lastActivity: {
+      bookingId: booking.id,
+      dayKey: booking.dayKey,
+      slotId: booking.slotId,
+      name: booking.name,
+      action: 'created',
+      at: Date.now()
+    }
+  }));
   return booking;
 }
 
 function updateBookingStatus(bookingId: string, status: BookingStatus): void {
-  setState((prev) => ({
-    ...prev,
-    bookings: prev.bookings.map((booking) =>
-      booking.id === bookingId ? { ...booking, status } : booking
-    )
-  }));
+  setState((prev) => {
+    const target = prev.bookings.find((item) => item.id === bookingId);
+    const nextActivity: LastActivity | null =
+      target && (status === 'confirmed' || status === 'cancelled')
+        ? {
+            bookingId: target.id,
+            dayKey: target.dayKey,
+            slotId: target.slotId,
+            name: target.name,
+            action: status,
+            at: Date.now()
+          }
+        : prev.lastActivity;
+    return {
+      ...prev,
+      bookings: prev.bookings.map((booking) =>
+        booking.id === bookingId ? { ...booking, status } : booking
+      ),
+      lastActivity: nextActivity
+    };
+  });
 }
 
 function removeBooking(bookingId: string): void {
   setState((prev) => ({
     ...prev,
-    bookings: prev.bookings.filter((booking) => booking.id !== bookingId)
+    bookings: prev.bookings.filter((booking) => booking.id !== bookingId),
+    lastActivity: prev.lastActivity?.bookingId === bookingId ? null : prev.lastActivity
   }));
 }
 
@@ -258,14 +328,21 @@ function addSlot(dayKey: DayKey, input: AddSlotInput): void {
   }));
 }
 
+/** Sincroniza el entrenamiento del día entre Horarios -> Hoy, Semana y Vista Cliente. */
 function updateDayFocus(dayKey: DayKey, focus: string): void {
-  updateDay(dayKey, (day) => ({ ...day, focus }));
+  setState((prev) => ({
+    ...prev,
+    days: prev.days.map((day) => (day.key === dayKey ? { ...day, focus } : day)),
+    weeklyProgram: prev.weeklyProgram.map((item) => (item.id === dayKey ? { ...item, focus } : item))
+  }));
 }
 
+/** Sincroniza la programación semanal con los días activos (Mié–Sáb) y Vista Cliente. */
 function updateWeeklyFocus(id: string, focus: string): void {
   setState((prev) => ({
     ...prev,
-    weeklyProgram: prev.weeklyProgram.map((item) => (item.id === id ? { ...item, focus } : item))
+    weeklyProgram: prev.weeklyProgram.map((item) => (item.id === id ? { ...item, focus } : item)),
+    days: prev.days.map((day) => (day.key === id ? { ...day, focus } : day))
   }));
 }
 

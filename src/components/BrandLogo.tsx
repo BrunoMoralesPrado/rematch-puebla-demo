@@ -1,4 +1,4 @@
-import { BrandTheme } from '../data/rematchData';
+import type { BrandTheme } from '../data/rematchData';
 
 interface BrandLogoProps {
   theme: BrandTheme;
@@ -42,14 +42,17 @@ export function BrandLogo({ theme, customLogoUrl }: BrandLogoProps) {
 
   if (theme === 'xmas') {
     return (
-      <div className="rm-logo-frame" aria-label="REMATCH Navidad">
-        <svg width="156" height="40" viewBox="0 0 156 40" fill="none" role="img" aria-label="rematch Navidad">
-          <path d="M5 13 C6 4, 15 2, 20 8 L22 12 Z" fill="#E11D2E" />
-          <rect x="3" y="11" width="20" height="4" rx="2" fill="#FFFFFF" />
-          <circle cx="21" cy="7" r="2.6" fill="#FFFFFF" />
+      <div className="rm-logo-frame">
+        <svg width="162" height="42" viewBox="0 0 162 42" fill="none" role="img" aria-label="rematch Navidad">
+          {/* Gorro apoyado sobre la "r" (compensa la itálica y la altura de la x) */}
+          <g transform="translate(5 5)">
+            <path d="M5 10 C6 2, 15 1, 20 6 L22 10 Z" fill="#E11D2E" />
+            <rect x="3" y="9" width="20" height="3.8" rx="1.9" fill="#FFFFFF" />
+            <circle cx="21" cy="5" r="2.4" fill="#FFFFFF" />
+          </g>
           <text
-            x="8"
-            y="31"
+            x="9"
+            y="33"
             fill="#FFFFFF"
             fontFamily="'Barlow Condensed', sans-serif"
             fontWeight="800"
@@ -58,20 +61,20 @@ export function BrandLogo({ theme, customLogoUrl }: BrandLogoProps) {
           >
             rematch
           </text>
-          <path d="M12 34 Q48 38 86 34" stroke="#22C55E" strokeWidth="1.6" fill="none" />
-          <circle cx="20" cy="35" r="2.3" fill="#E11D2E" />
-          <circle cx="38" cy="36" r="2.3" fill="#FFD100" />
-          <circle cx="56" cy="36" r="2.3" fill="#22C55E" />
-          <circle cx="74" cy="35" r="2.3" fill="#E11D2E" />
-          <rect x="95" y="15" width="54" height="15" rx="7.5" fill="#15803D" />
+          <path d="M12 36 Q48 40 87 36" stroke="#22C55E" strokeWidth="1.6" fill="none" />
+          <circle cx="20" cy="37" r="2.3" fill="#E11D2E" />
+          <circle cx="38" cy="38" r="2.3" fill="#FFD100" />
+          <circle cx="56" cy="38" r="2.3" fill="#22C55E" />
+          <circle cx="74" cy="37" r="2.3" fill="#E11D2E" />
+          <rect x="97" y="16" width="56" height="16" rx="8" fill="#15803D" />
           <text
-            x="122"
-            y="25.5"
+            x="125"
+            y="27"
             textAnchor="middle"
             fill="#FFFFFF"
             fontFamily="'JetBrains Mono', monospace"
             fontWeight="600"
-            fontSize="8.5"
+            fontSize="8.8"
           >
             NAVIDAD
           </text>
@@ -82,7 +85,7 @@ export function BrandLogo({ theme, customLogoUrl }: BrandLogoProps) {
 
   if (theme === 'hyrox') {
     return (
-      <div className="rm-logo-frame" aria-label="REMATCH HYROX">
+      <div className="rm-logo-frame">
         <svg width="168" height="36" viewBox="0 0 168 36" fill="none" role="img" aria-label="rematch HYROX">
           <text
             x="0"
@@ -114,7 +117,7 @@ export function BrandLogo({ theme, customLogoUrl }: BrandLogoProps) {
   }
 
   return (
-    <div className="rm-logo-frame" aria-label="REMATCH Fit House">
+    <div className="rm-logo-frame">
       <svg width="152" height="36" viewBox="0 0 152 36" fill="none" role="img" aria-label="rematch Fit House">
         <text
           x="0"
